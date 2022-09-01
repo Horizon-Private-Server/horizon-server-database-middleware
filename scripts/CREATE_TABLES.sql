@@ -851,8 +851,33 @@ BEGIN
 END
 
 /* middleware has a few roles it relies on */
-INSERT INTO [KEYS].[roles] VALUES('database', GETDATE(), 1)
-INSERT INTO [KEYS].[roles] VALUES('admin', GETDATE(), 1)
-INSERT INTO [KEYS].[roles] VALUES('moderator', GETDATE(), 1)
-INSERT INTO [KEYS].[roles] VALUES('discord_bot', GETDATE(), 1)
-INSERT INTO [KEYS].[roles] VALUES('stats_bot', GETDATE(), 1)
+BEGIN
+	IF NOT EXISTS (SELECT * FROM [KEYS].[roles] where role_name = 'database')
+	BEGIN
+		INSERT INTO [KEYS].[roles] VALUES('database', GETDATE(), 1)
+	END
+END
+BEGIN
+	IF NOT EXISTS (SELECT * FROM [KEYS].[roles] where role_name = 'admin')
+	BEGIN
+		INSERT INTO [KEYS].[roles] VALUES('admin', GETDATE(), 1)
+	END
+END
+BEGIN
+	IF NOT EXISTS (SELECT * FROM [KEYS].[roles] where role_name = 'moderator')
+	BEGIN
+		INSERT INTO [KEYS].[roles] VALUES('moderator', GETDATE(), 1)
+	END
+END
+BEGIN
+	IF NOT EXISTS (SELECT * FROM [KEYS].[roles] where role_name = 'discord_bot')
+	BEGIN
+		INSERT INTO [KEYS].[roles] VALUES('discord_bot', GETDATE(), 1)
+	END
+END
+BEGIN
+	IF NOT EXISTS (SELECT * FROM [KEYS].[roles] where role_name = 'stats_bot')
+	BEGIN
+		INSERT INTO [KEYS].[roles] VALUES('stats_bot', GETDATE(), 1)
+	END
+END
