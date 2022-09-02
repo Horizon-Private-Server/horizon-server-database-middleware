@@ -2,17 +2,39 @@ print("running")
 import os
 import pyodbc
 import pandas as pd
+import time
+import subprocess
 
 USER = os.getenv('DB_USER')
-PASSWORD = os.getenv('MSSQL_SA_PASSWORD')
+PASSWORD = os.getenv('DB_PASSWORD')
 SERVER = os.getenv('DB_SERVER')
 MIDDLEWARE_USER = os.getenv('MIDDLEWARE_USER')
+MIDDLEWARE_PASSWORD = os.getenv('MIDDLEWARE_PASSWORD')
+MIDDLEWARE_SERVER_IP = os.getenv('MIDDLEWARE_SERVER_IP')
 APP_ID = os.getenv("APP_ID")
 APP_NAME = os.getenv("APP_NAME")
 
+print(f"USER: {USER}")
+print(f"PASSWORD: {PASSWORD}")
+print(f"SERVER: {SERVER}")
+print(f"MIDDLEWARE_USER: {MIDDLEWARE_USER}")
+print(f"APP_ID: {APP_ID}")
+print(f"APP_NAME: {APP_NAME}")
 
+#--------------- Start the middleware
+print("Starting middleware process ...")
+process = subprocess.Popen(['dotnet', 'Horizon.Database.dll'])
+time.sleep(3)
+
+print(f"Creating admin user ...")
+curl_command = f'curl --insecure -X POST "{MIDDLEWARE_SERVER_IP}/Account/createAccount" -H  "accept: */*" -H  "Content-Type: application/json-patch+json" -d "{{\\"AccountName\\":\\"{MIDDLEWARE_USER}\\",\\"AccountPassword\\":\\"{MIDDLEWARE_PASSWORD}\\",\\"MachineId\\":\\"1\\",\\"MediusStats\\":\\"1\\",\\"AppId\\":0,\\"PasswordPreHashed\\":false}}"'
+print(curl_command)
+os.system(curl_command)
+
+
+print("Adding role and app id ...")
 cnxn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};Server={SERVER};Database=Medius_Database;UID={USER};PWD={PASSWORD};"
-            
+print(cnxn_str)
 cnxn = pyodbc.connect(cnxn_str)
 
 cursor = cnxn.cursor()
@@ -41,3 +63,6 @@ cursor.close()
 cnxn.close()
 
 print("Done!")
+
+print("Communicating with process ...")
+process.communicate()

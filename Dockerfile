@@ -16,6 +16,7 @@ RUN dotnet dev-certs https
 
 # Install python for some SQL stuff with the middlewaare
 RUN pip3 install pandas
+RUN pip3 install pyodbc
 
 ARG FUNCTION_DIR=/code
 RUN mkdir -p ${FUNCTION_DIR}
