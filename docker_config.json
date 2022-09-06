@@ -1,0 +1,29 @@
+{
+  "apps": [
+    {
+      "name": "Ratchet & Clank: Up Your Arsenal",
+      "id": 10684,
+      "app_group": 1
+    }
+  ],
+  "locations": [
+    {
+      "id": 40,
+      "app_id": 10684,
+      "name": "Aquatos"
+    }
+  ],
+  "channels": [
+    {
+      "id": 1,
+      "app_id": 10684,
+      "name": "CY00000000-00",
+      "max_players": 256,
+      "generic_field_1": 0,
+      "generic_field_2": 0,
+      "generic_field_3": 0,
+      "generic_field_4": 0,
+      "generic_field_filter": 32
+    }
+  ]
+}
