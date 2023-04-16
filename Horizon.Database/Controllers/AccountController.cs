@@ -145,7 +145,6 @@ namespace Horizon.Database.Controllers
             {
                 if (existingAccount == null)
                 {
-                    Console.WriteLine("Creating account line 148!");
                     Account acc = new Account()
                     {
                         AccountName = request.AccountName,
@@ -158,12 +157,9 @@ namespace Horizon.Database.Controllers
                         ResetPasswordOnNextLogin = request.ResetPasswordOnNextLogin,
                     };
 
-                    Console.WriteLine("Creating account line 148!");
 
                     db.Account.Add(acc);
-                    Console.WriteLine("Creating account line 164!");
                     db.SaveChanges();
-                    Console.WriteLine("Creating account line 166!");
 
 
                     List<AccountStat> newStats = (from ds in db.DimStats
