@@ -137,8 +137,6 @@ namespace Horizon.Database.Controllers
         [HttpPost, Route("createAccount")]
         public async Task<dynamic> createAccount([FromBody] AccountRequestDTO request)
         {
-            Console.WriteLine("ACCOUNT REQUEST: ");
-            Console.WriteLine(request.ResetPasswordOnNextLogin);
             DateTime now = DateTime.UtcNow;
             Account existingAccount = db.Account.Where(a => a.AccountName == request.AccountName).FirstOrDefault();
             if (existingAccount == null || existingAccount.IsActive == false)
