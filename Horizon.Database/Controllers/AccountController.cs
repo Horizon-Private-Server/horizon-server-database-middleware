@@ -137,12 +137,15 @@ namespace Horizon.Database.Controllers
         [HttpPost, Route("createAccount")]
         public async Task<dynamic> createAccount([FromBody] AccountRequestDTO request)
         {
+            Console.WriteLine("ACCOUNT REQUEST: ");
+            Console.WriteLine(request.ResetPasswordOnNextLogin);
             DateTime now = DateTime.UtcNow;
             Account existingAccount = db.Account.Where(a => a.AccountName == request.AccountName).FirstOrDefault();
             if (existingAccount == null || existingAccount.IsActive == false)
             {
                 if (existingAccount == null)
                 {
+                    Console.WriteLine("Creating account line 148!");
                     Account acc = new Account()
                     {
                         AccountName = request.AccountName,
@@ -152,10 +155,15 @@ namespace Horizon.Database.Controllers
                         MachineId = request.MachineId,
                         MediusStats = request.MediusStats,
                         AppId = request.AppId,
+                        ResetPasswordOnNextLogin = request.ResetPasswordOnNextLogin,
                     };
 
+                    Console.WriteLine("Creating account line 148!");
+
                     db.Account.Add(acc);
+                    Console.WriteLine("Creating account line 164!");
                     db.SaveChanges();
+                    Console.WriteLine("Creating account line 166!");
 
 
                     List<AccountStat> newStats = (from ds in db.DimStats

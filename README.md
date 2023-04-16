@@ -22,3 +22,9 @@ To run in docker, you need to:
 For docker compose with the main server go [here](https://github.com/Horizon-Private-Server/horizon-server).
 
 Multiple app groups not supported
+
+## App location
+```
+http://localhost:10000/swagger/index.html
+```
+(change the port to be whatever you use)

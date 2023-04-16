@@ -29,7 +29,7 @@ time.sleep(3)
 # Create admin middleware user
 #===============================================
 print(f"Creating admin user ...")
-curl_command = f'curl --insecure -X POST "{MIDDLEWARE_SERVER_IP}/Account/createAccount" -H  "accept: */*" -H  "Content-Type: application/json-patch+json" -d "{{\\"AccountName\\":\\"{MIDDLEWARE_USER}\\",\\"AccountPassword\\":\\"{MIDDLEWARE_PASSWORD}\\",\\"MachineId\\":\\"1\\",\\"MediusStats\\":\\"1\\",\\"AppId\\":0,\\"PasswordPreHashed\\":false}}"'
+curl_command = f'curl --insecure -X POST "{MIDDLEWARE_SERVER_IP}/Account/createAccount" -H  "accept: */*" -H  "Content-Type: application/json-patch+json" -d "{{\\"AccountName\\":\\"{MIDDLEWARE_USER}\\",\\"AccountPassword\\":\\"{MIDDLEWARE_PASSWORD}\\",\\"MachineId\\":\\"1\\",\\"MediusStats\\":\\"1\\",\\"AppId\\":0,\\"PasswordPreHashed\\":false,\\"ResetPasswordOnNextLogin\\":false}}"'
 print(curl_command)
 os.system(curl_command)
 

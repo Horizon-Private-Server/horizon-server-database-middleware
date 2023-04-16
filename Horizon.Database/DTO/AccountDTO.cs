@@ -32,6 +32,7 @@ namespace Horizon.Database.DTO
         public string MediusStats { get; set; }
         public int AppId { get; set; }
         public bool PasswordPreHashed { get; set; } = true;
+        public bool ResetPasswordOnNextLogin { get; set; } = false;
     }
 
     public class AccountRelationDTO
