@@ -36,7 +36,7 @@ CREATE TABLE [ACCOUNTS].[account](
 	[medius_stats] [nvarchar](350) NULL,
 	[last_sign_in_ip] [nvarchar](50) NULL,
 	[metadata] [nvarchar](max) NULL,
-	[reset_pw_on_next_login] [bit] NOT NULL,
+	[reset_password_on_next_login] [bit] NOT NULL,
  CONSTRAINT [PK_account] PRIMARY KEY CLUSTERED 
 (
 	[account_id] ASC

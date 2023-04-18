@@ -50,7 +50,6 @@ namespace Horizon.Database.Entities
         {
             modelBuilder.Entity<Account>(entity =>
             {
-                entity.ToTable("account", "ACCOUNTS");
 
                 entity.Property(e => e.AccountId).HasColumnName("account_id");
 
@@ -90,12 +89,16 @@ namespace Horizon.Database.Entities
                     .HasMaxLength(350);
 
                 entity.Property(e => e.ResetPasswordOnNextLogin)
-                    .HasColumnName("reset_pw_on_next_login")
+                    .IsRequired()
+                    .HasColumnName("reset_password_on_next_login")
                     .HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.Metadata).HasColumnName("metadata");
 
                 entity.Property(e => e.ModifiedDt).HasColumnName("modified_dt");
+                
+                entity.ToTable("account", "ACCOUNTS");
+
             });
 
             modelBuilder.Entity<AccountFriend>(entity =>
