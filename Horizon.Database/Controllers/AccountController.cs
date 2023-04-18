@@ -442,9 +442,7 @@ namespace Horizon.Database.Controllers
             if (existingAccount == null)
                 return NotFound();
 
-            bool ResetPassword = existingAccount.ResetPasswordOnNextLogin;
-
-            if (!ResetPassword && Crypto.ComputeSHA256(PasswordRequest.OldPassword) != existingAccount.AccountPassword)
+            if (!existingAccount.ResetPasswordOnNextLogin && Crypto.ComputeSHA256(PasswordRequest.OldPassword) != existingAccount.AccountPassword)
                 return StatusCode(401, "The password you provided is incorrect.");
 
             if (PasswordRequest.NewPassword != PasswordRequest.ConfirmNewPassword)

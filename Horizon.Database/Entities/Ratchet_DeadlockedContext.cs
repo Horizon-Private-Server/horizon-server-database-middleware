@@ -50,6 +50,7 @@ namespace Horizon.Database.Entities
         {
             modelBuilder.Entity<Account>(entity =>
             {
+                entity.ToTable("account", "ACCOUNTS");
 
                 entity.Property(e => e.AccountId).HasColumnName("account_id");
 
@@ -95,9 +96,6 @@ namespace Horizon.Database.Entities
                 entity.Property(e => e.Metadata).HasColumnName("metadata");
 
                 entity.Property(e => e.ModifiedDt).HasColumnName("modified_dt");
-                
-                entity.ToTable("account", "ACCOUNTS");
-
             });
 
             modelBuilder.Entity<AccountFriend>(entity =>
