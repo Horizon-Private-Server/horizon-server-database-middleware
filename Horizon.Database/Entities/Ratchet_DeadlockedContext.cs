@@ -90,8 +90,7 @@ namespace Horizon.Database.Entities
 
                 entity.Property(e => e.ResetPasswordOnNextLogin)
                     .IsRequired()
-                    .HasColumnName("reset_password_on_next_login")
-                    .HasDefaultValueSql("((0))");
+                    .HasColumnName("reset_password_on_next_login");
 
                 entity.Property(e => e.Metadata).HasColumnName("metadata");
 

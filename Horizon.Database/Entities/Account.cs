@@ -28,7 +28,7 @@ namespace Horizon.Database.Entities
         public string MediusStats { get; set; }
         public string LastSignInIp { get; set; }
         public string Metadata { get; set; }
-        public bool? ResetPasswordOnNextLogin { get; set; }
+        public bool ResetPasswordOnNextLogin { get; set; }
 
         public virtual ICollection<AccountFriend> AccountFriend { get; set; }
         public virtual ICollection<AccountIgnored> AccountIgnored { get; set; }

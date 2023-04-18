@@ -94,7 +94,7 @@ namespace Horizon.Database.Controllers
                                        MachineId = existingAccount.MachineId,
                                        IsBanned = existingBan != null ? true : false,
                                        AppId = existingAccount.AppId,
-                                       ResetPasswordOnNextLogin = a.ResetPasswordOnNextLogin ?? true
+                                       ResetPasswordOnNextLogin = a.ResetPasswordOnNextLogin
                                    }).FirstOrDefault();
             List<int> friendIds = db.AccountFriend.Where(a => a.AccountId == AccountId).Select(a => a.FriendAccountId).ToList();
             List<int> ignoredIds = db.AccountIgnored.Where(a => a.AccountId == AccountId).Select(a => a.IgnoredAccountId).ToList();
@@ -442,7 +442,7 @@ namespace Horizon.Database.Controllers
             if (existingAccount == null)
                 return NotFound();
 
-            bool ResetPassword = existingAccount.ResetPasswordOnNextLogin ?? true;
+            bool ResetPassword = existingAccount.ResetPasswordOnNextLogin;
 
             if (!ResetPassword && Crypto.ComputeSHA256(PasswordRequest.OldPassword) != existingAccount.AccountPassword)
                 return StatusCode(401, "The password you provided is incorrect.");
