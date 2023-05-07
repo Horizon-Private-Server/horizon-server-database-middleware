@@ -58,6 +58,20 @@ if pd.read_sql(f"select count(*) from accounts.user_role where account_id = {acc
 with open('/code/docker_config.json', 'r') as f:
     config = json.loads(f.read())
 
+#===============================================
+# Set EnableEncryption to 0
+# Set CreateAccountOnNotFound to 1
+#===============================================
+
+#   await PostDbAsync($"api/Keys/setSettings?appId={appId}", settings);
+for app in config['apps']:
+    appId = app['id']
+    print(f"Setting encryption and CreateAccountOnNotFound ...")
+    curl_command = f'curl --insecure -X POST "{MIDDLEWARE_SERVER_IP}/api/Keys/setSettings?appId={appId}" -H  "accept: */*" -H  "Content-Type: application/json-patch+json" -d "{{\\"EnableEncryption\\":\\"False\\",\\"CreateAccountOnNotFound\\":\\"True\\"}}"'
+    print(curl_command)
+    os.system(curl_command)
+
+
 #### Insert APP ID into dim table
 # Multiple groups not supported
 print("Inserting app ids ...")
