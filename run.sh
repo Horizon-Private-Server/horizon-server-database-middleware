@@ -1,4 +1,8 @@
 #!/bin/bash
+
+docker container kill horizon-middleware
+sleep 1
+
 set -e
 
 echo "Building middleware container ..."
@@ -6,7 +10,7 @@ docker build . -t horizon-middleware
 
 echo "Starting middleware container ..."
 docker run \
-  -it \
+  -d \
   --rm \
   -e DB_USER=${HORIZON_DB_USER} \
   -e DB_PASSWORD=${HORIZON_MSSQL_SA_PASSWORD} \

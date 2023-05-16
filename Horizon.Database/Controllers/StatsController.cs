@@ -73,10 +73,6 @@ namespace Horizon.Database.Controllers
             DateTime modifiedDt = DateTime.UtcNow;
             List<AccountStat> playerStats = db.AccountStat.Where(s => s.AccountId == AccountId).OrderBy(s => s.StatId).Select(s => s).ToList();
 
-            int badStats = playerStats.Where(s => s.StatValue < 0).Count();
-            if (badStats > 0)
-                return BadRequest("Found a negative stat in array. Can't have those!");
-
             return new StatPostDTO()
             {
                 AccountId = AccountId,
@@ -339,10 +335,6 @@ namespace Horizon.Database.Controllers
         {
             DateTime modifiedDt = DateTime.UtcNow;
             List<AccountStat> playerStats = db.AccountStat.Where(s => s.AccountId == statData.AccountId).OrderBy(s => s.StatId).Select(s => s).ToList();
-
-            int badStats = playerStats.Where(s => s.StatValue < 0).Count();
-            if(badStats > 0)
-                return BadRequest("Found a negative stat in array. Can't have those!");
 
             foreach (AccountStat pStat in playerStats)
             {
