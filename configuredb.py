@@ -77,12 +77,27 @@ for app in config['apps']:
 # Multiple groups not supported
 print("Inserting app ids ...")
 for app in config['apps']:
+    print(f"Inserting for app id: {app}")
     APP_ID = app['id']
     APP_NAME = app['name']
     APP_GROUP = app['app_group']
     # If it already exists, ignore
-    if pd.read_sql(f"select count(*) from keys.dim_app_ids where app_id = {APP_ID}", cnxn).values[0][0] == 0:
-        cursor.execute(f"INSERT INTO keys.dim_app_ids VALUES({APP_ID}, '{APP_NAME}', {APP_GROUP})")
+    query = f"select count(*) from keys.dim_app_ids where app_id = {APP_ID}"
+    print(f"Running query: {query}")
+    if pd.read_sql(query, cnxn).values[0][0] == 0:
+        query = f"INSERT INTO keys.dim_app_ids VALUES({APP_ID}, '{APP_NAME}', {APP_GROUP})"
+        print(f"Running query: {query}")
+        cursor.execute(query)
+
+print("Inserting app ids ...")
+# If it already exists, ignore
+for group_id, group_name in enumerate(config['app_groups']):
+    query = f"select count(*) from keys.dim_app_groups where group_name = '{group_name}'"
+    if pd.read_sql(query, cnxn).values[0][0] == 0:
+        query = f"INSERT INTO keys.dim_app_groups (group_name) VALUES('{group_name}')"
+        print(f"Running query: {query}")
+        cursor.execute(query)
+
 
 #### Insert Channels
 print("Inserting channels ...")

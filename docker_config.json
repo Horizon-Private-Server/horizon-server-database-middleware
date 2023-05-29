@@ -1,4 +1,7 @@
 {
+  "app_groups": [
+      "UYA"
+  ],
   "apps": [
     {
       "name": "Ratchet & Clank: Up Your Arsenal",
