@@ -67,9 +67,10 @@ with open('/code/docker_config.json', 'r') as f:
 for app in config['apps']:
     appId = app['id']
     print(f"Setting encryption and CreateAccountOnNotFound ...")
-    curl_command = f'curl --insecure -X POST "{MIDDLEWARE_SERVER_IP}/api/Keys/setSettings?appId={appId}" -H  "accept: */*" -H  "Content-Type: application/json-patch+json" -d "{{\\"EnableEncryption\\":\\"False\\",\\"CreateAccountOnNotFound\\":\\"True\\"}}"'
+    curl_command = f'curl --insecure -X POST "{MIDDLEWARE_SERVER_IP}/api/Keys/setSettings?appId={appId}" -H  "accept: */*" -H  "Content-Type: application/json-patch+json" -d "{{\\"EnableEncryption\\":\\"False\\",\\"CreateAccountOnNotFound\\":\\"True\\",\\"ClientLongTimeoutSeconds\\":50,\\"ClientTimeoutSeconds\\":50,\\"DmeTimeoutSeconds\\":50,\\"KeepAliveGracePeriodSeconds\\":50,\\"GameTimeoutSeconds\\":50}}"'
     print(curl_command)
     os.system(curl_command)
+
 
 
 #### Insert APP ID into dim table
