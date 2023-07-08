@@ -446,7 +446,8 @@ namespace Horizon.Database.Controllers
                     s.GameId,
                     s.GameName,
                     s.ChannelId,
-                    s.DatabaseUser
+                    s.DatabaseUser,
+                    db.Account.FirstOrDefault(a => a.AccountId == s.AccountId).Metadata
                 });
 
             return results;
