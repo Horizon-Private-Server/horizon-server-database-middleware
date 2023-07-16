@@ -135,7 +135,6 @@ namespace Horizon.Database.Controllers
                 return NotFound();
 
             var existingBan = (from b in db.Banned where b.AccountId == existingAccount.AccountId && b.FromDt <= now && (b.ToDt == null || b.ToDt > now) select b).FirstOrDefault();
-            var accountList = db.Account.ToList();
 
             AccountDTO account2 = (from a in db.Account
                                    where a.AccountId == AccountId
