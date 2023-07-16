@@ -123,6 +123,42 @@ namespace Horizon.Database.Controllers
             return account2;
         }
 
+
+        [Authorize("discord_bot")]
+        [HttpGet, Route("getAccountBasic")]
+        public async Task<dynamic> getAccountBasic(int AccountId)
+        {
+            DateTime now = DateTime.UtcNow;
+            Account existingAccount = db.Account.Include(a => a.ClanMember).Where(a => a.AccountId == AccountId).FirstOrDefault();
+
+            if (existingAccount == null)
+                return NotFound();
+
+            var existingBan = (from b in db.Banned where b.AccountId == existingAccount.AccountId && b.FromDt <= now && (b.ToDt == null || b.ToDt > now) select b).FirstOrDefault();
+            var accountList = db.Account.ToList();
+
+            AccountDTO account2 = (from a in db.Account
+                                   where a.AccountId == AccountId
+                                   select new AccountDTO()
+                                   {
+                                       AccountId = a.AccountId,
+                                       AccountName = a.AccountName,
+                                       AccountPassword = "",
+                                       AccountWideStats = a.AccountStat.OrderBy(s => s.StatId).Select(s => s.StatValue).ToList(),
+                                       AccountCustomWideStats = a.AccountCustomStat.OrderBy(s => s.StatId).Select(s => s.StatValue).ToList(),
+                                       Friends = new List<AccountRelationDTO>(),
+                                       Ignored = new List<AccountRelationDTO>(),
+                                       Metadata = existingAccount.Metadata,
+                                       MediusStats = existingAccount.MediusStats,
+                                       MachineId = "",
+                                       IsBanned = existingBan != null ? true : false,
+                                       AppId = existingAccount.AppId,
+                                       ResetPasswordOnNextLogin = false
+                                   }).FirstOrDefault();
+
+            return account2;
+        }
+
         [Authorize]
         [HttpGet, Route("getAccountMetadata")]
         public async Task<string> getAccountMetadata(int AccountId)
