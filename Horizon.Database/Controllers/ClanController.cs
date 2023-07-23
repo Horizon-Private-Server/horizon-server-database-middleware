@@ -65,13 +65,27 @@ namespace Horizon.Database.Controllers
             if (clan == null)
                 return NotFound();
 
+            AccountDTO clanLeader = aServ.toAccountDTO(clan.ClanLeaderAccount);
+            if (clanLeader != null) {
+                clanLeader.AccountPassword = "";
+                clanLeader.MachineId = "";
+                clanLeader.ResetPasswordOnNextLogin = false;
+            }
+
+            List<AccountDTO> clanMembers = clan.ClanMember.Where(cm => cm.IsActive == true).Select(cm => aServ.toAccountDTO(cm.Account)).ToList();
+            foreach (AccountDTO member in clanMembers) {
+                member.AccountPassword = "";
+                member.MachineId = "";
+                member.ResetPasswordOnNextLogin = false;
+            }
+
             ClanDTO response = new ClanDTO()
             {
                 AppId = clan.AppId ?? 11184,
                 ClanId = clan.ClanId,
                 ClanName = clan.ClanName,
-                ClanLeaderAccount = aServ.toAccountDTO(clan.ClanLeaderAccount),
-                ClanMemberAccounts = clan.ClanMember.Where(cm => cm.IsActive == true).Select(cm => aServ.toAccountDTO(cm.Account)).ToList(),
+                ClanLeaderAccount = clanLeader,
+                ClanMemberAccounts = clanMembers,
                 ClanMediusStats = clan.MediusStats,
                 ClanWideStats = clan.ClanStat.OrderBy(stat => stat.StatId).Select(cs => cs.StatValue).ToList(),
                 ClanCustomWideStats = clan.ClanCustomStat.OrderBy(stat => stat.StatId).Select(cs => cs.StatValue).ToList(),
