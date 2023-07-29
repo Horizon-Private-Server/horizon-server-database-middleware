@@ -151,4 +151,4 @@ cnxn.close()
 print("Done!")
 
 print("Communicating with process ...")
-process.communicate()
+process.kill()
