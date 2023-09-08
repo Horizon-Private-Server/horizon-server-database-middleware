@@ -43,6 +43,59 @@ namespace Horizon.Database.Controllers
             return accountCount;
         }
 
+        [Authorize("discord_bot")]
+        [HttpGet, Route("getClanBasic")]
+        public async Task<dynamic> getClanBasic(int clanId)
+        {
+            AccountService aServ = new AccountService();
+            ClanService cs = new ClanService();
+
+            Clan clan = (from c in db.Clan
+                           .Include(c => c.ClanMember)
+                           .ThenInclude(cm => cm.Account)
+                           .Include(c => c.ClanMessage)
+                           .Include(c => c.ClanStat)
+                           .Include(c => c.ClanCustomStat)
+                           .Include(c => c.ClanLeaderAccount)
+                           .Include(c => c.ClanInvitation)
+                           .ThenInclude(ci => ci.Account)
+                         where c.ClanId == clanId && c.IsActive == true
+                         select c).FirstOrDefault();
+
+            if (clan == null)
+                return NotFound();
+
+            AccountDTO clanLeader = aServ.toAccountDTO(clan.ClanLeaderAccount);
+            if (clanLeader != null) {
+                clanLeader.AccountPassword = "";
+                clanLeader.MachineId = "";
+                clanLeader.ResetPasswordOnNextLogin = false;
+            }
+
+            List<AccountDTO> clanMembers = clan.ClanMember.Where(cm => cm.IsActive == true).Select(cm => aServ.toAccountDTO(cm.Account)).ToList();
+            foreach (AccountDTO member in clanMembers) {
+                member.AccountPassword = "";
+                member.MachineId = "";
+                member.ResetPasswordOnNextLogin = false;
+            }
+
+            ClanDTO response = new ClanDTO()
+            {
+                AppId = clan.AppId ?? 11184,
+                ClanId = clan.ClanId,
+                ClanName = clan.ClanName,
+                ClanLeaderAccount = clanLeader,
+                ClanMemberAccounts = clanMembers,
+                ClanMediusStats = clan.MediusStats,
+                ClanWideStats = clan.ClanStat.OrderBy(stat => stat.StatId).Select(cs => cs.StatValue).ToList(),
+                ClanCustomWideStats = clan.ClanCustomStat.OrderBy(stat => stat.StatId).Select(cs => cs.StatValue).ToList(),
+                ClanMessages = new List<ClanMessageDTO>(),
+                ClanMemberInvitations = new List<ClanInvitationDTO>(),
+            };
+
+            return response;
+        }
+
         [Authorize("database")]
         [HttpGet, Route("getClan")]
         public async Task<dynamic> getClan(int clanId, bool includeCustomStats = false)
