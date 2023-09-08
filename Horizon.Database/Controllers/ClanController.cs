@@ -45,22 +45,40 @@ namespace Horizon.Database.Controllers
 
         [Authorize("database")]
         [HttpGet, Route("getClan")]
-        public async Task<dynamic> getClan(int clanId)
+        public async Task<dynamic> getClan(int clanId, bool includeCustomStats = false)
         {
             AccountService aServ = new AccountService();
             ClanService cs = new ClanService();
+            Clan clan = null;
 
-            Clan clan = (from c in db.Clan
-                           .Include(c => c.ClanMember)
-                           .ThenInclude(cm => cm.Account)
-                           .Include(c => c.ClanMessage)
-                           .Include(c => c.ClanStat)
-                           .Include(c => c.ClanCustomStat)
-                           .Include(c => c.ClanLeaderAccount)
-                           .Include(c => c.ClanInvitation)
-                           .ThenInclude(ci => ci.Account)
-                         where c.ClanId == clanId && c.IsActive == true
-                         select c).FirstOrDefault();
+            if (includeCustomStats)
+            {
+                clan = (from c in db.Clan
+                               .Include(c => c.ClanMember)
+                               .ThenInclude(cm => cm.Account)
+                               .Include(c => c.ClanMessage)
+                               .Include(c => c.ClanStat)
+                               .Include(c => c.ClanCustomStat)
+                               .Include(c => c.ClanLeaderAccount)
+                               .Include(c => c.ClanInvitation)
+                               .ThenInclude(ci => ci.Account)
+                             where c.ClanId == clanId && c.IsActive == true
+                             select c).FirstOrDefault();
+            }
+            else
+            {
+                clan = (from c in db.Clan
+                               .Include(c => c.ClanMember)
+                               .ThenInclude(cm => cm.Account)
+                               .Include(c => c.ClanMessage)
+                               .Include(c => c.ClanStat)
+                               // .Include(c => c.ClanCustomStat)
+                               .Include(c => c.ClanLeaderAccount)
+                               .Include(c => c.ClanInvitation)
+                               .ThenInclude(ci => ci.Account)
+                             where c.ClanId == clanId && c.IsActive == true
+                             select c).FirstOrDefault();
+            }
 
             if (clan == null)
                 return NotFound();
