@@ -39,6 +39,7 @@ namespace Horizon.Database.Controllers
                 Payload = LogData.Payload
             };
             db.ServerLog.Add(log);
+            db.SaveChanges();
 
             return Ok("Log Saved!");
         }
