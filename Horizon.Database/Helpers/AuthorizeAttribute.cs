@@ -14,7 +14,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 
     public AuthorizeAttribute(string role = null)
     {
-        requiredRoles = role?.Split(',') ?? new string[0];
+        requiredRoles = role?.Split(',');
     }
     public void OnAuthorization(AuthorizationFilterContext context)
     {
