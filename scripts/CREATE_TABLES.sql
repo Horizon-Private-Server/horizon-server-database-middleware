@@ -805,7 +805,7 @@ BEGIN
 	INSERT INTO STATS.account_custom_stat (account_id, stat_id, stat_value, modified_dt)
 	SELECT A.account_id, DCS.stat_id, DCS.default_value as stat_value, GETUTCDATE() as modified_dt
 	FROM ACCOUNTS.account a
-	INNER JOIN KEYS.dim_custom_stats DCS ON DCS.app_id = a.app_id
+	INNER JOIN KEYS.dim_custom_stats DCS ON (DCS.app_id = a.app_id or DCS.app_id = 0)
 	LEFT JOIN STATS.account_custom_stat ACS
 		ON ACS.account_id = a.account_id
 		AND ACS.stat_id = DCS.stat_id
@@ -833,7 +833,7 @@ BEGIN
 	INSERT INTO STATS.clan_custom_stat(clan_id, stat_id, stat_value, modified_dt)
 	SELECT C.clan_id, DCS.stat_id, DCS.default_value as stat_value, GETUTCDATE() as modified_dt
 	FROM CLANS.clan C
-	INNER JOIN KEYS.dim_clan_custom_stats DCS ON DCS.app_id = C.app_id
+	INNER JOIN KEYS.dim_clan_custom_stats DCS ON (DCS.app_id = C.app_id or DCS.app_id = 0)
 	LEFT JOIN STATS.clan_custom_stat CCS
 		ON CCS.clan_id = c.clan_id
 		AND CCS.stat_id = DCS.stat_id

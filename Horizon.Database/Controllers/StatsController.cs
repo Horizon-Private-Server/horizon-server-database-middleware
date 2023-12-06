@@ -45,12 +45,13 @@ namespace Horizon.Database.Controllers
                                           }).ToList();
             db.AccountStat.AddRange(newStats);
             List<AccountCustomStat> newCustomStats = (from ds in db.DimCustomStats
-                                          select new AccountCustomStat()
-                                          {
-                                              AccountId = existingAcc.AccountId,
-                                              StatId = ds.StatId,
-                                              StatValue = ds.DefaultValue
-                                          }).ToList();
+                                                      where (ds.AppId == 0 || ds.AppId == existingAcc.AppId)
+                                                      select new AccountCustomStat()
+                                                      {
+                                                          AccountId = existingAcc.AccountId,
+                                                          StatId = ds.StatId,
+                                                          StatValue = ds.DefaultValue
+                                                      }).ToList();
             db.AccountCustomStat.AddRange(newCustomStats);
             db.SaveChanges();
 

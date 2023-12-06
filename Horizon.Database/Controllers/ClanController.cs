@@ -220,14 +220,14 @@ namespace Horizon.Database.Controllers
             db.ClanStat.AddRange(newStats);
 
             List<ClanCustomStat> newCustomStats = (from ds in db.DimClanCustomStats
-                                       select new ClanCustomStat()
-                                       {
-                                           ClanId = newClan.ClanId,
-                                           StatId = ds.StatId,
-                                           StatValue = ds.DefaultValue
-                                       }).ToList();
+                                                   where (ds.AppId == 0 || ds.AppId == newClan.AppId)
+                                                   select new ClanCustomStat()
+                                                   {
+                                                       ClanId = newClan.ClanId,
+                                                       StatId = ds.StatId,
+                                                       StatValue = ds.DefaultValue
+                                                   }).ToList();
             db.ClanCustomStat.AddRange(newCustomStats);
-
 
             db.SaveChanges();
             return await getClan(newClan.ClanId);
