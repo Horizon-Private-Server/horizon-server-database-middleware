@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class AuthorizeAttribute : Attribute, IAuthorizationFilter
 {
-    public string requiredRole;
+    public string[] requiredRoles;
+
     public AuthorizeAttribute(string role = null)
     {
-        requiredRole = role;
+        requiredRoles = role?.Split(',') ?? new string[0];
     }
     public void OnAuthorization(AuthorizationFilterContext context)
     {
@@ -25,7 +26,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
                 // not logged in
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
             }
-            else if (requiredRole != null && !user.Roles.Contains(requiredRole))
+            else if (requiredRoles != null && !user.Roles.Any(r => requiredRoles.Contains(r)))
             {
                 //User does not have the required role for this request
                 context.Result = new JsonResult(new { message = "Unauthorized" }) { StatusCode = StatusCodes.Status401Unauthorized };
