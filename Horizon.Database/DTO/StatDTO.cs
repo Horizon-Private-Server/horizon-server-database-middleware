@@ -37,6 +37,12 @@ namespace Horizon.Database.DTO
         public List<int> stats { get; set; }
     }
 
+    public class ResetStatDTO
+    {
+        public int AppId { get; set; }
+        public int StatId { get; set; }
+    }
+
     public class ClanStatPostDTO
     {
         public int ClanId { get; set; }

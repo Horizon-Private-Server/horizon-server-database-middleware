@@ -386,6 +386,27 @@ namespace Horizon.Database.Controllers
 
         }
 
+        [Authorize("database,discord_bot")]
+        [HttpPost, Route("resetLeaderboardCustom")]
+        public async Task<dynamic> resetLeaderboardCustom([FromBody] ResetStatDTO statData)
+        {
+            List<AccountCustomStat> playerStats =   (from s in db.AccountCustomStat
+                                                     join c in db.Account
+                                                       on s.AccountId equals c.AccountId
+                                                     where c.AppId == statData.AppId && s.StatId == statData.StatId && s.StatValue > 0
+                                                     select s).ToList();
+            
+            foreach (var playerStat in playerStats)
+            {
+                playerStat.StatValue = 0;
+                playerStat.ModifiedDt = DateTime.UtcNow;
+            }
+
+            db.SaveChanges();
+            return Ok();
+
+        }
+
         [Authorize("database")]
         [HttpPost, Route("postClanStats")]
         public async Task<dynamic> postClanStats([FromBody] ClanStatPostDTO statData)

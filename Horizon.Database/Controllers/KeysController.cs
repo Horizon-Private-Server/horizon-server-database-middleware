@@ -75,7 +75,7 @@ namespace Horizon.Database.Controllers
             return results;
         }
 
-        [Authorize("database")]
+        [Authorize("database,discord_bot")]
         [HttpGet, Route("getSettings")]
         public async Task<Dictionary<string, string>> getSettings(int appId)
         {
@@ -86,7 +86,7 @@ namespace Horizon.Database.Controllers
             return settings;
         }
 
-        [Authorize("database")]
+        [Authorize("database,discord_bot")]
         [HttpPost, Route("setSettings")]
         public void setSettings(int appId, [FromBody] Dictionary<string, string> settings)
         {
