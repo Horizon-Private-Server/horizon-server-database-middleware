@@ -205,7 +205,7 @@ namespace Horizon.Database.Controllers
                     db.AccountStat.AddRange(newStats);
 
                     List<AccountCustomStat> newCustomStats = (from ds in db.DimCustomStats
-                                                              where (ds.AppId == 0 || ds.AppId == existingAccount.AppId)
+                                                              where (ds.AppId == 0 || ds.AppId == acc.AppId)
                                                               select new AccountCustomStat()
                                                               {
                                                                   AccountId = acc.AccountId,
