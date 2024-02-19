@@ -76,6 +76,9 @@ namespace Horizon.Database.Controllers
                 return NotFound();
 
             var existingBan = (from b in db.Banned where b.AccountId == existingAccount.AccountId && b.FromDt <= now && (b.ToDt == null || b.ToDt > now) select b).FirstOrDefault();
+            bool accountBanned = existingBan != null ? true : false;
+            bool macBanned = await getMacIsBanned(existingAccount.MachineId);
+            
             var accountList = db.Account.ToList();
 
             AccountDTO account2 = (from a in db.Account
@@ -92,7 +95,7 @@ namespace Horizon.Database.Controllers
                                        Metadata = existingAccount.Metadata,
                                        MediusStats = existingAccount.MediusStats,
                                        MachineId = existingAccount.MachineId,
-                                       IsBanned = existingBan != null ? true : false,
+                                       IsBanned = accountBanned || macBanned,
                                        AppId = existingAccount.AppId,
                                        ResetPasswordOnNextLogin = a.ResetPasswordOnNextLogin
                                    }).FirstOrDefault();
