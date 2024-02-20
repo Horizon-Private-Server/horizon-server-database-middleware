@@ -546,6 +546,27 @@ namespace Horizon.Database.Controllers
         }
 
         [Authorize("database")]
+        [HttpGet, Route("getAccountNameMacIsBanned")]
+        public async Task<bool> getAccountNameMacIsBanned(string AccountName, int AppId)
+        {
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return false;
+
+            bool result = await getMacIsBanned(existingAccount.MachineId);
+
+            return result;
+        }
+
+        [Authorize("database")]
         [HttpPost, Route("banIp")]
         public async Task<dynamic> banIp([FromBody] BanRequestDTO request)
         {
