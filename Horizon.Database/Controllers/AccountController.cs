@@ -405,7 +405,7 @@ namespace Horizon.Database.Controllers
             return Ok();
         }
 
-        [Authorize("database")]
+        [Authorize("database,discord_bot")]
         [HttpPost, Route("postAccountMetadata")]
         public async Task<dynamic> postAccountMetadata([FromBody] string Metadata, int AccountId)
         {
