@@ -477,17 +477,22 @@ namespace Horizon.Database.Controllers
         {
             var results = db.AccountStatus
                 .Where(acs => acs.LoggedIn)
-                .Select(s => new
+                .Join(db.Account,
+                    acs => acs.AccountId,
+                    a => a.AccountId,
+                    (acs, a) => new { acs, a })
+                .Where(joined => joined.a.MachineId != null)
+                .Select(joined => new
                 {
-                    s.AppId,
-                    s.AccountId,
-                    db.Account.FirstOrDefault(a => a.AccountId == s.AccountId).AccountName,
-                    s.WorldId,
-                    s.GameId,
-                    s.GameName,
-                    s.ChannelId,
-                    s.DatabaseUser,
-                    db.Account.FirstOrDefault(a => a.AccountId == s.AccountId).Metadata
+                    joined.acs.AppId,
+                    joined.acs.AccountId,
+                    joined.a.AccountName,
+                    joined.acs.WorldId,
+                    joined.acs.GameId,
+                    joined.acs.GameName,
+                    joined.acs.ChannelId,
+                    joined.acs.DatabaseUser,
+                    joined.a.Metadata
                 });
 
             return results;
