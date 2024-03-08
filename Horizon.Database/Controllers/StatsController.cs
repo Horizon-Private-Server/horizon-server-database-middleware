@@ -135,7 +135,7 @@ namespace Horizon.Database.Controllers
 
         [Authorize]
         [HttpGet, Route("getPlayerLeaderboardIndexCustom")]
-        public async Task<dynamic> getPlayerLeaderboardIndexCustom(int AccountId, int CustomStatId, int AppId)
+        public async Task<dynamic> getPlayerLeaderboardIndexCustom(int AccountId, int CustomStatId, int AppId, bool orderAsc = false)
         {
             var app_id_group = (from a in db.DimAppIds
                                 where a.AppId == AppId
@@ -145,7 +145,12 @@ namespace Horizon.Database.Controllers
                                     where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == AppId
                                     select a.AppId).ToList();
 
-            List<AccountCustomStat> stats = db.AccountCustomStat.Where(s => s.Account.IsActive == true && s.StatId == CustomStatId && app_ids_in_group.Contains(s.Account.AppId ?? -1)).OrderByDescending(s => s.StatValue).ThenBy(s => s.AccountId).ToList();
+            List<AccountCustomStat> stats = null;
+            if (orderAsc)
+                stats = db.AccountCustomStat.Where(s => s.Account.IsActive == true && s.StatValue > 0 && s.StatId == CustomStatId && app_ids_in_group.Contains(s.Account.AppId ?? -1)).OrderBy(s => s.StatValue).ThenBy(s => s.AccountId).ToList();
+            else
+                stats = db.AccountCustomStat.Where(s => s.Account.IsActive == true && s.StatId == CustomStatId && app_ids_in_group.Contains(s.Account.AppId ?? -1)).OrderByDescending(s => s.StatValue).ThenBy(s => s.AccountId).ToList();
+
             AccountCustomStat statForAccount = stats.Where(s => s.AccountId == AccountId).FirstOrDefault();
             Account acc = db.Account.Where(a => a.AccountId == AccountId).FirstOrDefault();
             AccountController ac = new AccountController(db, authService);
@@ -259,9 +264,14 @@ namespace Horizon.Database.Controllers
 
         [Authorize]
         [HttpGet, Route("getLeaderboardCustom")]
-        public async Task<List<LeaderboardDTO>> getLeaderboardCustom(int CustomStatId, int StartIndex, int Size, int AppId)
+        public async Task<List<LeaderboardDTO>> getLeaderboardCustom(int CustomStatId, int StartIndex, int Size, int AppId, bool orderAsc = false)
         {
-            List<AccountCustomStat> stats = db.AccountCustomStat.Where(s => s.Account.IsActive == true && s.StatId == CustomStatId && s.Account.AppId == AppId).OrderByDescending(s => s.StatValue).ThenBy(s => s.AccountId).Skip(StartIndex).Take(Size).ToList();
+            List<AccountCustomStat> stats = null;
+            if (orderAsc)
+                stats = db.AccountCustomStat.Where(s => s.Account.IsActive == true && s.StatValue > 0 && s.StatId == CustomStatId && s.Account.AppId == AppId).OrderBy(s => s.StatValue).ThenBy(s => s.AccountId).Skip(StartIndex).Take(Size).ToList();
+            else
+                stats = db.AccountCustomStat.Where(s => s.Account.IsActive == true && s.StatId == CustomStatId && s.Account.AppId == AppId).OrderByDescending(s => s.StatValue).ThenBy(s => s.AccountId).Skip(StartIndex).Take(Size).ToList();
+
             AccountController ac = new AccountController(db, authService);
 
             List<LeaderboardDTO> board = (from s in stats
