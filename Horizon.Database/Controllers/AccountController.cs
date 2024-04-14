@@ -158,6 +158,8 @@ namespace Horizon.Database.Controllers
                                        ResetPasswordOnNextLogin = false
                                    }).FirstOrDefault();
 
+            account2.ClanId = existingAccount.ClanMember.Where(cm => cm.IsActive == true).FirstOrDefault()?.ClanId;
+
             return account2;
         }
 
