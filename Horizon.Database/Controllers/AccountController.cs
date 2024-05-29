@@ -526,6 +526,32 @@ namespace Horizon.Database.Controllers
 
         }
 
+        [Authorize("discord_bot")]
+        [HttpPost, Route("resetAccountPassword")]
+        public async Task<dynamic> resetAccountPassword([FromBody] AccountPasswordDiscordResetRequest PasswordRequest)
+        {
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == PasswordRequest.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == PasswordRequest.AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == PasswordRequest.AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return NotFound();
+
+            existingAccount.ResetPasswordOnNextLogin = true;
+            existingAccount.ModifiedDt = DateTime.UtcNow;
+
+            db.Account.Attach(existingAccount);
+            db.Entry(existingAccount).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return Ok("Password Reset");
+        }
+
         [Authorize("database")]
         [HttpPost, Route("getIpIsBanned")]
         public async Task<bool> getIpIsBanned([FromBody] string IpAddress)

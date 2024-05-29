@@ -76,6 +76,12 @@ namespace Horizon.Database.DTO
         public string ConfirmNewPassword { get; set; }
     }
 
+    public class AccountPasswordDiscordResetRequest
+    {
+        public string AccountName { get; set; }
+        public int AppId { get; set; }
+    }
+
     public class UserDTO
     {
         public int AccountId { get; set; }
