@@ -552,6 +552,45 @@ namespace Horizon.Database.Controllers
             return Ok("Password Reset");
         }
 
+        [Authorize("moderator")]
+        [HttpPost, Route("changeAccountName")]
+        public async Task<dynamic> changeAccountName([FromBody] AccountChangeNameRequest ChangeNameRequest)
+        {
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == ChangeNameRequest.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == ChangeNameRequest.AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == ChangeNameRequest.AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return NotFound();
+
+            app_id_group = (from a in db.DimAppIds
+                                where a.AppId == ChangeNameRequest.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == ChangeNameRequest.AppId
+                                    select a.AppId).ToList();
+
+            Account newAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == ChangeNameRequest.NewAccountName && a.IsActive == true).FirstOrDefault();
+            if (newAccount != null)
+                return StatusCode(403, "The account name already exists.");
+
+
+            existingAccount.AccountName = ChangeNameRequest.NewAccountName;
+            existingAccount.ModifiedDt = DateTime.UtcNow;
+
+            db.Account.Attach(existingAccount);
+            db.Entry(existingAccount).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return Ok("Account Name Changed.");
+        }
+
         [Authorize("database")]
         [HttpPost, Route("getIpIsBanned")]
         public async Task<bool> getIpIsBanned([FromBody] string IpAddress)

@@ -82,6 +82,13 @@ namespace Horizon.Database.DTO
         public int AppId { get; set; }
     }
 
+    public class AccountChangeNameRequest
+    {
+        public string AccountName { get; set; }
+        public string NewAccountName { get; set; }
+        public int AppId { get; set; }
+    }
+
     public class UserDTO
     {
         public int AccountId { get; set; }
