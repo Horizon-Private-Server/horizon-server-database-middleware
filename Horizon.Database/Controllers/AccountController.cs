@@ -526,7 +526,7 @@ namespace Horizon.Database.Controllers
 
         }
 
-        [Authorize("moderator")]
+        [Authorize("database,moderator")]
         [HttpPost, Route("resetAccountPassword")]
         public async Task<dynamic> resetAccountPassword([FromBody] AccountPasswordDiscordResetRequest PasswordRequest)
         {
