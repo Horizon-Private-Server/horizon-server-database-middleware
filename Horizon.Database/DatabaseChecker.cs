@@ -27,6 +27,8 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Horizon.Database
 {
@@ -36,9 +38,17 @@ namespace Horizon.Database
         private DbContext context = null;
         private string folderPath = null;
 
+        private string middlewareAdminUser = null;
+        private string middlewareAdminPassword = null;
+        private string horizonDatabase = null;
+
         public DatabaseChecker()
         {
             Console.WriteLine($"Checking if server is already initialized ...");
+
+            middlewareAdminUser = Environment.GetEnvironmentVariable("HORIZON_MIDDLEWARE_USER");
+            middlewareAdminPassword = ComputeSHA256(Environment.GetEnvironmentVariable("HORIZON_MIDDLEWARE_PASSWORD"));
+            horizonDatabase = Environment.GetEnvironmentVariable("HORIZON_DB_NAME");
 
             // Set folder path
             var st = new StackTrace(true);
@@ -93,10 +103,8 @@ namespace Horizon.Database
         private bool IsServerInitialized()
         {
             var databaseName = context.Database.GetDbConnection().Database;
-            var sql = $"SELECT COUNT(*) FROM sys.databases WHERE name = '{databaseName}'";
-            var result = context.Database.ExecuteSqlRaw(sql);
-
-            return result > 0;
+            string sql = $"SELECT COUNT(*) FROM sys.databases WHERE name = '{horizonDatabase}'";
+            return QueryDatabaseInt(sql) > 0;
         }
 
 
@@ -123,14 +131,16 @@ namespace Horizon.Database
                 // Create admin middleware user
                 CreateAdminUser();
 
+                // Set all app settings into the database
+                SetAppSettings();
+            } else {
+                Console.WriteLine($"Database already initialized!");
             }
 
         }
 
         public void CreateAdminUser() {
             Console.WriteLine("Creating admin middleware user ...");
-            string middlewareAdminUser = Environment.GetEnvironmentVariable("HORIZON_MIDDLEWARE_USER");
-            string middlewareAdminPassword = ComputeSHA256(Environment.GetEnvironmentVariable("HORIZON_MIDDLEWARE_PASSWORD"));
 
             string createAdmin = $@"
                 INSERT INTO accounts.account (account_name, account_password, create_dt, is_active, app_id, reset_password_on_next_login)
@@ -138,11 +148,71 @@ namespace Horizon.Database
             ";
             ExecuteSqlCommand(createAdmin);
 
-
             // Add database role 
-            int roleId = (int)QueryDatabase("SELECT role_id FROM keys.roles where role_name = 'database'");
-            int accountId = (int)QueryDatabase($"SELECT account_id FROM accounts.account where account_name = '{middlewareAdminUser}'");
-            ExecuteSqlCommand($"INSERT INTO accounts.user_role VALUES({accountId}, {roleId}, GETDATE(), GETDATE(), null)");
+            int roleId = QueryDatabaseInt($"SELECT role_id FROM {horizonDatabase}.KEYS.roles where role_name = 'database'");
+            int accountId = QueryDatabaseInt($"SELECT account_id FROM {horizonDatabase}.accounts.account where account_name = '{middlewareAdminUser}'");
+            ExecuteSqlCommand($"INSERT INTO {horizonDatabase}.accounts.user_role VALUES({accountId}, {roleId}, GETDATE(), GETDATE(), null)");
+        }
+
+        public void SetAppSettings() {
+            // Insert app group ids
+
+            string filePath = Path.Combine(folderPath, "appsettings.json");
+            
+            // Read the JSON file content
+            string jsonContent = File.ReadAllText(filePath);
+
+            AppGroupSettings appGroupSettings = JsonConvert.DeserializeObject<AppGroupSettings>(jsonContent);
+
+            // Process AppGroups
+            foreach (var appGroup in appGroupSettings.AppGroups)
+            {
+                // Dim app groups
+                ExecuteSqlCommand($"INSERT INTO keys.dim_app_groups (group_name) VALUES('{appGroup.Name}')");
+            }
+
+            // Eula
+            ExecuteSqlCommand($"INSERT INTO keys.dim_eula (eula_title, eula_body, create_dt, modified_dt, from_dt) VALUES('{appGroupSettings.Eula.Title}', '{appGroupSettings.Eula.Body}', getdate(), getdate(), getdate())");
+
+            // Process Apps
+            foreach (var app in appGroupSettings.Apps)
+            {
+                int groupId = QueryDatabaseInt($"SELECT group_id FROM {horizonDatabase}.keys.dim_app_groups where group_name = '{app.GroupName}'");
+
+                // Dim apps
+                ExecuteSqlCommand($"INSERT INTO keys.dim_app_ids VALUES({app.Id}, '{app.Name}', {groupId})");
+
+                // Announcements
+                foreach (var announcement in app.Announcements) {
+                    ExecuteSqlCommand($"INSERT INTO keys.dim_announcements (announcement_title, announcement_body, create_dt, modified_dt, from_dt, app_id) VALUES('{announcement.Title}', '{announcement.Body}', getdate(), getdate(), getdate(), {app.Id})");
+                }
+
+                // Server Settings
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'EnableEncryption', '{app.ServerSettings.EnableEncryption}')");
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'CreateAccountOnNotFound', '{app.ServerSettings.CreateAccountOnNotFound}')");
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'ClientLongTimeoutSeconds', '{app.ServerSettings.ClientLongTimeoutSeconds}')");
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'ClientTimeoutSeconds', '{app.ServerSettings.ClientTimeoutSeconds}')");
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'DmeTimeoutSeconds', '{app.ServerSettings.DmeTimeoutSeconds}')");
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'KeepAliveGracePeriodSeconds', '{app.ServerSettings.KeepAliveGracePeriodSeconds}')");
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'GameTimeoutSeconds', '{app.ServerSettings.GameTimeoutSeconds}')");
+            }
+
+            // Process Locations
+            foreach (var location in appGroupSettings.Locations)
+            {
+                Console.WriteLine($"Location Id: , AppId: {location.AppId}, Name: {location.Name}");
+
+                ExecuteSqlCommand($"INSERT INTO world.locations VALUES({location.Id},{location.AppId},'{location.Name}')");
+            }
+
+            // Process Channels
+            foreach (var channel in appGroupSettings.Channels)
+            {
+                Console.WriteLine($"Channel Id: {channel.Id}, AppId: {channel.AppId}, Name: {channel.Name}");
+                // Perform your processing here
+
+                ExecuteSqlCommand($"INSERT INTO world.channels VALUES({channel.Id},{channel.AppId},'{channel.Name}',{channel.MaxPlayers},{channel.GenericField1},{channel.GenericField2},{channel.GenericField3},{channel.GenericField4},{channel.GenericFieldFilter})");           
+            }
 
         }
 
@@ -185,10 +255,15 @@ namespace Horizon.Database
             Console.WriteLine("SQL script executed successfully.");
         }
 
-        private var QueryDatabase(string sql)
-        {
-            var result = context.Database.ExecuteSqlRaw(sql);
-            return result;
+        private int QueryDatabaseInt(string sql)
+        {               
+            Console.WriteLine($"Querying database with: {sql}");
+            var command = context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = sql;
+            context.Database.OpenConnection();
+            var result = (int)command.ExecuteScalar();
+            context.Database.CloseConnection();
+            return (int)result;
         }
 
         public void ExecuteSqlCommand(string command) {
@@ -196,11 +271,7 @@ namespace Horizon.Database
             {
                 try
                 {
-                    string db_name = Environment.GetEnvironmentVariable("HORIZON_DB_NAME");
-                    string use_db_command = $"use [{db_name}]";
-
-                    Console.WriteLine($"Executing command: {use_db_command}");
-                    context.Database.ExecuteSqlRaw(use_db_command);
+                    UseHorizonDb();
 
                     Console.WriteLine($"Executing command: {command}");
                     context.Database.ExecuteSqlRaw(command);
@@ -212,6 +283,13 @@ namespace Horizon.Database
                     throw;
                 }
             }
+        }
+
+        public void UseHorizonDb() {
+            string use_db_command = $"use [{horizonDatabase}]";
+
+            Console.WriteLine($"Executing command: {use_db_command}");
+            context.Database.ExecuteSqlRaw(use_db_command);
         }
 
         public static string ComputeSHA256(string input)
@@ -230,6 +308,8 @@ namespace Horizon.Database
                 return builder.ToString();
             }
         }
+
+
 
     }
 }
