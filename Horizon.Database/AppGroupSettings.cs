@@ -11,6 +11,7 @@ public class ServerSettings
     public int DmeTimeoutSeconds { get; set; }
     public int KeepAliveGracePeriodSeconds { get; set; }
     public int GameTimeoutSeconds { get; set; }
+    public string TextFilterAccountName { get; set; }
 }
 
 public class TextBody

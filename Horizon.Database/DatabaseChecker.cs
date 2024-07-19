@@ -195,22 +195,18 @@ namespace Horizon.Database
                 ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'DmeTimeoutSeconds', '{app.ServerSettings.DmeTimeoutSeconds}')");
                 ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'KeepAliveGracePeriodSeconds', '{app.ServerSettings.KeepAliveGracePeriodSeconds}')");
                 ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'GameTimeoutSeconds', '{app.ServerSettings.GameTimeoutSeconds}')");
+                ExecuteSqlCommand($"INSERT INTO keys.server_settings (app_id, name, value) VALUES({app.Id}, 'TextFilterAccountName', '{app.ServerSettings.TextFilterAccountName}')");
             }
 
             // Process Locations
             foreach (var location in appGroupSettings.Locations)
             {
-                Console.WriteLine($"Location Id: , AppId: {location.AppId}, Name: {location.Name}");
-
                 ExecuteSqlCommand($"INSERT INTO world.locations VALUES({location.Id},{location.AppId},'{location.Name}')");
             }
 
             // Process Channels
             foreach (var channel in appGroupSettings.Channels)
             {
-                Console.WriteLine($"Channel Id: {channel.Id}, AppId: {channel.AppId}, Name: {channel.Name}");
-                // Perform your processing here
-
                 ExecuteSqlCommand($"INSERT INTO world.channels VALUES({channel.Id},{channel.AppId},'{channel.Name}',{channel.MaxPlayers},{channel.GenericField1},{channel.GenericField2},{channel.GenericField3},{channel.GenericField4},{channel.GenericFieldFilter})");           
             }
 
