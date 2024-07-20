@@ -47,7 +47,7 @@ namespace Horizon.Database
             Console.WriteLine($"Checking if server is already initialized ...");
 
             middlewareAdminUser = Environment.GetEnvironmentVariable("HORIZON_MIDDLEWARE_USER");
-            middlewareAdminPassword = ComputeSHA256(Environment.GetEnvironmentVariable("HORIZON_MIDDLEWARE_PASSWORD"));
+            middlewareAdminPassword = Utils.ComputeSHA256(Environment.GetEnvironmentVariable("HORIZON_MIDDLEWARE_PASSWORD"));
             horizonDatabase = Environment.GetEnvironmentVariable("HORIZON_DB_NAME");
 
             // Set folder path
@@ -132,7 +132,7 @@ namespace Horizon.Database
                 CreateAdminUser();
 
                 // Set all app settings into the database
-                SetAppSettings();
+                InitializeAppSettings();
             } else {
                 Console.WriteLine($"Database already initialized!");
             }
@@ -154,7 +154,7 @@ namespace Horizon.Database
             ExecuteSqlCommand($"INSERT INTO {horizonDatabase}.accounts.user_role VALUES({accountId}, {roleId}, GETDATE(), GETDATE(), null)");
         }
 
-        public void SetAppSettings() {
+        public void InitializeAppSettings() {
             // Insert app group ids
 
             string filePath = Path.Combine(folderPath, "appsettings.json");
@@ -287,25 +287,6 @@ namespace Horizon.Database
             Console.WriteLine($"Executing command: {use_db_command}");
             context.Database.ExecuteSqlRaw(use_db_command);
         }
-
-        public static string ComputeSHA256(string input)
-        {
-            // Create a SHA256   
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                // ComputeHash - returns byte array  
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-
-                // Convert byte array to a string   
-                StringBuilder builder = new StringBuilder();
-                for (int i = 0; i < bytes.Length; i++)
-                    builder.Append(bytes[i].ToString("x2"));
-
-                return builder.ToString();
-            }
-        }
-
-
 
     }
 }
