@@ -580,6 +580,26 @@ namespace Horizon.Database.Controllers
             if (newAccount != null)
                 return StatusCode(403, "The account name already exists.");
 
+            // Check text filters to make sure new name passes 
+            var settings = await (from s in db.ServerSettings
+                            where s.AppId == ChangeNameRequest.AppId
+                            select new { s.Name, s.Value }).ToDictionaryAsync(x => x.Name, x => x.Value);
+
+            string regex = "";
+            if (settings.ContainsKey("TextFilterAccountName")) 
+            {
+                regex = settings["TextFilterAccountName"];
+            }
+            // Use normal text filter since no account name filter exists
+            else if (settings.ContainsKey("TextFilterDefault")) 
+            {
+                regex = settings["TextFilterDefault"];
+            }
+
+            // Check if name passes regex
+            if (!Utils.PassTextFilter(ChangeNameRequest.NewAccountName, regex)) {
+                return StatusCode(403, "Did not pass text filter!");
+            }
 
             existingAccount.AccountName = ChangeNameRequest.NewAccountName;
             existingAccount.ModifiedDt = DateTime.UtcNow;

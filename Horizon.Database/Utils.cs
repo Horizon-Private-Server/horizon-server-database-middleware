@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace Horizon.Database
 {
@@ -50,6 +51,20 @@ namespace Horizon.Database
             }
             return sb.ToString();
         }
+
+#endregion
+
+#region Regex
+
+        public static bool PassTextFilter(string text, string rExp)
+        {
+            if (String.IsNullOrEmpty(rExp))
+                return true;
+
+            Regex r = new Regex(rExp, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            return !r.IsMatch(text);
+        }
+
 
 #endregion
 
