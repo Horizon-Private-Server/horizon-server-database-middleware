@@ -397,6 +397,80 @@ namespace Horizon.Database.Controllers
 
         }
 
+        [Authorize("moderator")]
+        [HttpPost, Route("combineAccountStat")]
+        public async Task<dynamic> combineAccountStat([FromBody] CombineAccountStatDTO statData)
+        {
+            DateTime modifiedDt = DateTime.UtcNow;
+            
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == statData.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == statData.AppId
+                                    select a.AppId).ToList();
+
+            Account accountFrom = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == statData.AccountNameFrom && a.IsActive == true).FirstOrDefault();
+            if(accountFrom == null || accountFrom.IsActive == false)
+            {
+                return StatusCode(403, $"AccountFrom {statData.AccountNameFrom} not found.");
+            }
+
+            Account accountTo = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == statData.AccountNameTo && a.IsActive == true).FirstOrDefault();
+            if(accountTo == null || accountTo.IsActive == false)
+            {
+                return StatusCode(403, $"AccountTo {statData.AccountNameTo} not found.");
+            }
+
+            List<AccountStat> playerStatsFrom = db.AccountStat.Where(s => s.AccountId == accountFrom.AccountId).OrderBy(s => s.StatId).Select(s => s).ToList();
+            List<AccountStat> playerStatsTo = db.AccountStat.Where(s => s.AccountId == accountTo.AccountId).OrderBy(s => s.StatId).Select(s => s).ToList();
+
+            // Get the valid list of stats to combine
+            var settings = await (from s in db.ServerSettings
+                            where s.AppId == statData.AppId
+                            select new { s.Name, s.Value }).ToDictionaryAsync(x => x.Name, x => x.Value);
+
+            if (!settings.ContainsKey("AccountCombineStatIds"))
+            {
+                return StatusCode(403, "AccountCombineStatIds missing in Server Settings");
+            }
+
+            string statIdListRaw = settings["AccountCombineStatIds"];
+            string trimmedInput = statIdListRaw.Trim('[', ']');
+            string[] stringNumbers = trimmedInput.Split(',');
+            List<int> statIdsToCombine = stringNumbers.Select(int.Parse).ToList();
+
+            // For each stat id, add them together where the stat id matches
+            foreach (int statId in statIdsToCombine)
+            {
+                AccountStat accountStatFrom = playerStatsFrom.FirstOrDefault(obj => obj.StatId == statId);
+                AccountStat accountStatTo = playerStatsTo.FirstOrDefault(obj => obj.StatId == statId);
+
+                int newValue = accountStatTo.StatValue + accountStatFrom.StatValue;
+                accountStatTo.ModifiedDt = modifiedDt;
+                accountStatTo.StatValue = newValue;
+
+                db.AccountStat.Attach(accountStatTo);
+                db.Entry(accountStatTo).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            }
+
+            // Reset all From stats
+            foreach (AccountStat pStat in playerStatsFrom)
+            {
+                int newValue = 0;
+                pStat.ModifiedDt = modifiedDt;
+                pStat.StatValue = newValue;
+
+                db.AccountStat.Attach(pStat);
+                db.Entry(pStat).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            }
+
+            db.SaveChanges();
+            return Ok();
+
+        }
+
         [Authorize("database,discord_bot")]
         [HttpPost, Route("resetLeaderboardCustom")]
         public async Task<dynamic> resetLeaderboardCustom([FromBody] ResetStatDTO statData)

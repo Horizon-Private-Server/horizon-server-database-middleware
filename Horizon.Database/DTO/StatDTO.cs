@@ -48,4 +48,12 @@ namespace Horizon.Database.DTO
         public int ClanId { get; set; }
         public List<int> stats { get; set; }
     }
+
+    public class CombineAccountStatDTO
+    {
+        public int AppId { get; set; }
+        public string AccountNameFrom { get; set; }
+        public string AccountNameTo { get; set; }
+    }
+
 }
