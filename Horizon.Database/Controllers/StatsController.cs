@@ -471,7 +471,7 @@ namespace Horizon.Database.Controllers
 
         }
 
-        [Authorize("database,discord_bot")]
+        [Authorize("database,moderator")]
         [HttpPost, Route("resetLeaderboardCustom")]
         public async Task<dynamic> resetLeaderboardCustom([FromBody] ResetStatDTO statData)
         {
