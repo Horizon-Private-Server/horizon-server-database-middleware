@@ -51,10 +51,7 @@ namespace Horizon.Database
             horizonDatabase = Environment.GetEnvironmentVariable("HORIZON_DB_NAME");
 
             // Set folder path
-            var st = new StackTrace(true);
-            var frame = st.GetFrame(0);
-            string filepath = frame.GetFileName();
-            folderPath = Path.GetDirectoryName(filepath);
+            folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             var builder = new ConfigurationBuilder()
             .SetBasePath(folderPath)
