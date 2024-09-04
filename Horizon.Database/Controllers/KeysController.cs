@@ -232,7 +232,7 @@ namespace Horizon.Database.Controllers
             return announcement;
         }
 
-        [Authorize("database")]
+        [Authorize("database,moderator")]
         [HttpGet, Route("getAnnouncementsList")]
         public async Task<dynamic> getAnnouncementsList(int AppId, DateTime? Dt, int TakeSize = 10)
         {
@@ -249,7 +249,7 @@ namespace Horizon.Database.Controllers
             return announcements;
         }
 
-        [Authorize("database")]
+        [Authorize("database,moderator")]
         [HttpGet, Route("deleteAnnouncement")]
         public async Task<dynamic> deleteAnnouncement(int id)
         {
@@ -290,7 +290,7 @@ namespace Horizon.Database.Controllers
             return Ok("Announcement Changed");
         }
 
-        [Authorize("database")]
+        [Authorize("database,moderator")]
         [HttpPost, Route("postAnnouncement")]
         public async Task<dynamic> postAnnouncement([FromBody] AddAnnouncementDTO request)
         {
