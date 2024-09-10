@@ -5,12 +5,12 @@ sleep 1
 
 set -e
 
-# echo "Building middleware container ..."
+echo "Building middleware container ..."
 docker build . -t horizonprivateserver/horizon-server-database-middleware
 
 echo "Starting middleware container ..."
 docker run \
-  -d \
+  -it \
   --rm \
   -e HORIZON_DB_USER=${HORIZON_DB_USER} \
   -e HORIZON_MSSQL_SA_PASSWORD=${HORIZON_MSSQL_SA_PASSWORD} \
@@ -24,5 +24,4 @@ docker run \
   -p 10000:10000 \
   -p 10001:10001 \
   --name horizon-middleware \
-  horizon-middleware
-#
+  horizonprivateserver/horizon-server-database-middleware

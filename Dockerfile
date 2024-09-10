@@ -19,13 +19,14 @@ RUN pip3 install pyodbc
 ARG FUNCTION_DIR=/code
 RUN mkdir -p ${FUNCTION_DIR}
 WORKDIR ${FUNCTION_DIR}
-COPY . ${FUNCTION_DIR}
+COPY Horizon.Database ${FUNCTION_DIR}/Horizon.Database
+COPY Horizon.Database.sln ${FUNCTION_DIR}
 
 # Compile
 RUN dotnet publish -c Release -o out
 
 WORKDIR ${FUNCTION_DIR}/out
-RUN mv ../entrypoint.sh .
+COPY entrypoint.sh .
 
 RUN sed -i -e 's/\r$//' entrypoint.sh
 

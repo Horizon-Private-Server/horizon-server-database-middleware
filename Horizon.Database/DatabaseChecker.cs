@@ -65,6 +65,8 @@ namespace Horizon.Database
             string dbUserName = Environment.GetEnvironmentVariable("HORIZON_DB_USER");
             string dbPassword = Environment.GetEnvironmentVariable("HORIZON_MSSQL_SA_PASSWORD");
 
+            Console.WriteLine($"Using DB server: {serverName} and user: {dbUserName} and DB name: {dbName}");
+
             var connectionString = connectionStringPlaceHolder.Replace("{_SERVER}", serverName).Replace("{_DBNAME}", dbName).Replace("{_USERNAME}", dbUserName).Replace("{_PASSWORD}", dbPassword);
 
             // Configure DbContextOptionsBuilder
