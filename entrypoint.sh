@@ -1,6 +1,8 @@
 #! /bin/sh
-sed -i "s|https://localhost:10000|${HORIZON_MIDDLEWARE_SERVER}|g" /code/out/appsettings.json
 
-# # Start DME
+cp /appsettings.json /code/Horizon.Database/appsettings.json
+cp /appsettings.json /code/out/appsettings.json
+
+# # Start Middleware
 echo "Starting Database Middleware ..."
 dotnet Horizon.Database.dll
