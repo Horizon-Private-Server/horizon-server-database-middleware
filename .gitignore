@@ -6,6 +6,11 @@
 /Horizon.Database/Properties/launchSettings.json
 
 
+*.key
+*.crt
+*.csr
+*.pfx
+
 appsettings.json
 
 ## Ignore Visual Studio temporary files, build results, and
