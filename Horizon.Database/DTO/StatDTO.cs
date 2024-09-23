@@ -56,4 +56,10 @@ namespace Horizon.Database.DTO
         public string AccountNameTo { get; set; }
     }
 
+    public class AccountStatDTO
+    {
+        public int AccountId { get; set; }
+        public Dictionary<int, int> Stats { get; set; }
+    }
+
 }

@@ -363,6 +363,31 @@ namespace Horizon.Database.Controllers
 
         }
 
+        [Authorize("discord_bot")]
+        [HttpGet, Route("getRecentStatChanges")]
+        public async Task<List<AccountStatDTO>> getRecentStats([FromQuery] int minutes = 5)
+        {
+            if (minutes > 60) {
+                return new List<AccountStatDTO>();
+            }
+
+            DateTime startTime = DateTime.UtcNow.AddMinutes(-minutes);
+
+            List<AccountStat> recentStats = await db.AccountStat
+                .Where(s => s.ModifiedDt >= startTime)
+                .OrderByDescending(s => s.ModifiedDt)
+                .ToListAsync();
+
+            return recentStats
+                .GroupBy(stat => stat.AccountId)  // Group by AccountId
+                .Select(group => new AccountStatDTO
+                {
+                    AccountId = group.Key,  // AccountId is the group key
+                    Stats = group.ToDictionary(stat => stat.StatId, stat => stat.StatValue)  // Convert each group to a Dictionary<StatId, StatValue>
+                })
+                .ToList();
+        }
+
         [Authorize("database")]
         [HttpPost, Route("postStatsCustom")]
         public async Task<dynamic> postStatsCustom([FromBody] StatPostDTO statData)

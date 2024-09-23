@@ -78,6 +78,73 @@ namespace Horizon.Database.Controllers
 
 
 
+        [Authorize("stats_bot,discord_bot")]
+        [HttpGet, Route("historyByDate/{appId}")]
+        public async Task<dynamic> getGameHistoryByDate(int appId, [FromQuery] DateTime lastGameEndDt)
+        {
+            int pageSize = 100;
+
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == appId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == appId
+                                    select a.AppId).ToList();
+
+            var gamesQuery = db.GameHistory.Where(g => app_ids_in_group.Contains(g.AppId))
+                                        .Where(g => g.GameEndDt < lastGameEndDt)
+                                        .OrderByDescending(g => g.GameEndDt);
+
+            var games = await gamesQuery.Take(pageSize).ToListAsync();
+
+            // Check if we retrieved any games
+            if (games.Any())
+            {
+                // Get the last game's end date to use as a cursor for the next page
+                var nextCursor = games.Last().GameEndDt;
+
+                return new
+                {
+                    Games = games,
+                    NextCursor = nextCursor // Return the cursor for the next page
+                };
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
+
+
+        [Authorize("stats_bot,discord_bot")]
+        [HttpGet, Route("history/getRecentGames")]
+        public async Task<dynamic> getRecentGames(int appId, int minutes)
+        {
+            if (minutes > 60) {
+                return null;
+            }
+
+            DateTime startTime = DateTime.UtcNow.AddMinutes(-minutes);
+
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == appId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == appId
+                                    select a.AppId).ToList();
+
+            var games = db.GameHistory.Where(g => app_ids_in_group.Contains(g.AppId) && g.GameEndDt >= startTime);
+
+            return games;
+        }
+
+        
+
+
+
         //[Authorize("stats_bot")]
         [HttpPut, Route("history")]
         public async Task<dynamic> updateGameHistory([FromBody] GameHistory game)
