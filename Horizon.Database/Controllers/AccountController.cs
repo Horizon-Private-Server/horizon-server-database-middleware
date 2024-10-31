@@ -528,7 +528,7 @@ namespace Horizon.Database.Controllers
 
         [Authorize("database,moderator")]
         [HttpPost, Route("resetAccountPassword")]
-        public async Task<dynamic> resetAccountPassword([FromBody] AccountPasswordDiscordResetRequest PasswordRequest)
+        public async Task<dynamic> resetAccountPassword([FromBody] AccountAndAppIdRequest PasswordRequest)
         {
             var app_id_group = (from a in db.DimAppIds
                                 where a.AppId == PasswordRequest.AppId
@@ -689,5 +689,95 @@ namespace Horizon.Database.Controllers
             db.SaveChanges();
             return Ok("Mac Banned");
         }
+
+        [Authorize("moderator")]
+        [HttpPost, Route("banAccount")]
+        public async Task<dynamic> banAccount([FromBody] AccountAndAppIdRequest request) 
+        {
+            DateTime now = DateTime.UtcNow;
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == request.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == request.AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == request.AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return NotFound();
+
+            Banned newBan = new Banned()
+            {
+                AccountId = existingAccount.AccountId,
+                FromDt = now
+            };
+            db.Banned.Add(newBan);
+            db.SaveChanges();
+            return Ok("Account Banned");
+
+        }
+
+        [Authorize("moderator")]
+        [HttpPost, Route("banIpByAccountName")]
+        public async Task<dynamic> banIpByAccountName([FromBody] AccountAndAppIdRequest request) 
+        {
+            DateTime now = DateTime.UtcNow;
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == request.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == request.AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == request.AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return NotFound();
+
+            if (existingAccount.LastSignInIp == null)
+                return StatusCode(403, "No IP for that account!");
+
+            BannedIp newBan = new BannedIp()
+            {
+                IpAddress = existingAccount.LastSignInIp,
+                FromDt = now
+            };
+            db.BannedIp.Add(newBan);
+            db.SaveChanges();
+            return Ok("Ip Banned");
+        }
+
+        [Authorize("moderator")]
+        [HttpPost, Route("banMacByAccountName")]
+        public async Task<dynamic> banMacByAccountName([FromBody] AccountAndAppIdRequest request) 
+        {
+            DateTime now = DateTime.UtcNow;
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == request.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == request.AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == request.AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return NotFound();
+
+            if (existingAccount.MachineId == null)
+                return StatusCode(403, "No MAC for that account!");
+
+            BannedMac newBan = new BannedMac()
+            {
+                MacAddress = existingAccount.MachineId,
+                FromDt = now
+            };
+            db.BannedMac.Add(newBan);
+            db.SaveChanges();
+            return Ok("Mac Banned");
+        }
+
+
     }
 }
