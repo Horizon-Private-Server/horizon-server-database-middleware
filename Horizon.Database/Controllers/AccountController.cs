@@ -637,6 +637,57 @@ namespace Horizon.Database.Controllers
             return ban != null ? true : false;
         }
 
+        
+        [Authorize("database")]
+        [HttpGet, Route("checkAccountIsBanned")]
+        public async Task<bool> checkAccountIsBanned(string AccountName, int AppId)
+        {
+            DateTime now = DateTime.UtcNow;
+
+            // Get machine id and IP
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == AppId
+                                    select a.AppId).ToList();
+
+            var existingAccount = db.Account
+                .Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == AccountName && a.IsActive == true)
+                .Select(a => new 
+                {
+                    a.AccountId,
+                    a.LastSignInIp,
+                    a.MachineId
+                })
+                .FirstOrDefault();
+
+            if (existingAccount == null) {
+                return false;
+            }
+
+            // Check for MAC Ban
+            bool macBanned = await getMacIsBanned(existingAccount.MachineId);
+            if (macBanned)
+                return true;
+
+            // Check for IP Ban
+            if (existingAccount.LastSignInIp != null) {
+                bool ipBanned = await getIpIsBanned(existingAccount.LastSignInIp);
+                if (ipBanned) 
+                    return true;
+            }
+
+            // Check for Account Ban
+            var existingBan = (from b in db.Banned where b.AccountId == existingAccount.AccountId && b.FromDt <= now && (b.ToDt == null || b.ToDt > now) select b).FirstOrDefault();
+            bool accountBanned = existingBan != null ? true : false;
+            if (accountBanned)
+                return true;
+
+            return false;
+        }
+
         [Authorize("database")]
         [HttpGet, Route("getAccountNameMacIsBanned")]
         public async Task<bool> getAccountNameMacIsBanned(string AccountName, int AppId)
