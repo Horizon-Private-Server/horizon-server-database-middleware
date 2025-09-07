@@ -21,6 +21,7 @@ docker run \
   -e HORIZON_MIDDLEWARE_USER=${HORIZON_MIDDLEWARE_USER} \
   -e HORIZON_MIDDLEWARE_PASSWORD=${HORIZON_MIDDLEWARE_PASSWORD} \
   -v ${PWD}/appsettings.json:/appsettings.json \
++  -v ${PWD}/server.pfx:/server.pfx \
   -p 10000:10000 \
   -p 10001:10001 \
   --name horizon-middleware \
