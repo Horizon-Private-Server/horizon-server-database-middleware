@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1 as builder
+FROM mcr.microsoft.com/dotnet/sdk:3.1-focal as builder
 
 RUN apt-get update
 RUN apt-get install curl gnupg software-properties-common python3 python3-pip -y
