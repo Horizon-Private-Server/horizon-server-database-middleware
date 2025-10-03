@@ -122,7 +122,7 @@ namespace Horizon.Database.Controllers
         [HttpGet, Route("history/getRecentGames")]
         public async Task<dynamic> getRecentGames(int appId, int minutes)
         {
-            if (minutes > 60) {
+            if (minutes > 600) {
                 return null;
             }
 
@@ -366,3 +366,4 @@ namespace Horizon.Database.Controllers
         }
     }
 }
+
