@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:3.1-focal as builder
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS builder
 
 RUN apt-get update
 RUN apt-get install curl gnupg software-properties-common python3 python3-pip -y
@@ -13,8 +13,10 @@ RUN dotnet dev-certs https
 RUN dotnet dev-certs https
 
 # Install python for some SQL stuff with the middlewaare
-RUN pip3 install pandas
-RUN pip3 install pyodbc
+RUN apt-get install python3-pandas -y
+RUN apt-get install python3-pyodbc -y
+#RUN pip3 install pandas
+#RUN pip3 install pyodbc
 
 ARG FUNCTION_DIR=/code
 RUN mkdir -p ${FUNCTION_DIR}

@@ -20,7 +20,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
-using Renci.SshNet;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace Horizon.Database
