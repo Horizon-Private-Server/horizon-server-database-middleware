@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Horizon.Database.Entities;
 using Horizon.Database.Helpers;
+using Horizon.Database.Plugins;
 using Horizon.Database.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,8 +28,11 @@ namespace Horizon.Database
     public class Startup
     {
         public IConfiguration Configuration { get; }
+        public PluginManager PluginManager { get; }
         public Startup(IConfiguration configuration, Microsoft.Extensions.Hosting.IHostEnvironment env)
         {
+            PluginManager = new PluginManager(configuration["Plugins"]);
+
             var builder = new ConfigurationBuilder()
             .SetBasePath(env.ContentRootPath)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -41,6 +45,8 @@ namespace Horizon.Database
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            PluginManager.RegisterPlugins(Configuration, services);
+
             services.AddDbContext<Ratchet_DeadlockedContext>((serviceProvider, dbContextBuilder) =>
             {
                 var connectionStringPlaceHolder = Configuration.GetConnectionString("DbConnection");
