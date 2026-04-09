@@ -800,6 +800,33 @@ namespace Horizon.Database.Controllers
         }
 
         [Authorize("moderator")]
+        [HttpPost, Route("clearIpByAccountName")]
+        public async Task<dynamic> clearIpByAccountName([FromBody] AccountAndAppIdRequest request)
+        {
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == request.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == request.AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == request.AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return NotFound();
+
+            if (existingAccount.LastSignInIp == null)
+                return StatusCode(403, "No IP for that account!");
+
+            existingAccount.LastSignInIp = null;
+            existingAccount.ModifiedDt = DateTime.UtcNow;
+            db.Account.Attach(existingAccount);
+            db.Entry(existingAccount).State = EntityState.Modified;
+            db.SaveChanges();
+            return Ok("Ip Cleared");
+        }
+
+        [Authorize("moderator")]
         [HttpPost, Route("banMacByAccountName")]
         public async Task<dynamic> banMacByAccountName([FromBody] AccountAndAppIdRequest request) 
         {
@@ -827,6 +854,33 @@ namespace Horizon.Database.Controllers
             db.BannedMac.Add(newBan);
             db.SaveChanges();
             return Ok("Mac Banned");
+        }
+
+        [Authorize("moderator")]
+        [HttpPost, Route("clearMacByAccountName")]
+        public async Task<dynamic> clearMacByAccountName([FromBody] AccountAndAppIdRequest request)
+        {
+            var app_id_group = (from a in db.DimAppIds
+                                where a.AppId == request.AppId
+                                select a.GroupId).FirstOrDefault();
+
+            var app_ids_in_group = (from a in db.DimAppIds
+                                    where (a.GroupId == app_id_group && a.GroupId != null) || a.AppId == request.AppId
+                                    select a.AppId).ToList();
+
+            Account existingAccount = db.Account.Where(a => app_ids_in_group.Contains(a.AppId ?? -1) && a.AccountName == request.AccountName && a.IsActive == true).FirstOrDefault();
+            if (existingAccount == null)
+                return NotFound();
+
+            if (existingAccount.MachineId == null)
+                return StatusCode(403, "No MAC for that account!");
+
+            existingAccount.MachineId = null;
+            existingAccount.ModifiedDt = DateTime.UtcNow;
+            db.Account.Attach(existingAccount);
+            db.Entry(existingAccount).State = EntityState.Modified;
+            db.SaveChanges();
+            return Ok("Mac Cleared");
         }
 
 

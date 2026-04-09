@@ -259,3 +259,5 @@ paket-files/
 .idea/
 *.sln.iml
 /Horizon.Database/db.json
+
+.DS_Store
