@@ -347,6 +347,57 @@ namespace Horizon.Database.Controllers
             return await getAccount(existingAccount.AccountId);
         }
 
+        // Caps the alt match lists so a shared/default value doesn't return the whole table.
+        private const int AltMatchLimit = 100;
+
+        private (Account account, List<string> machineIdMatches, List<string> ipMatches) queryAlts(string AccountName)
+        {
+            Account account = db.Account.Where(a => a.AccountName == AccountName).FirstOrDefault();
+            if (account == null)
+                return (null, null, null);
+
+            // A null value must match nothing, not every row where the column is null.
+            var machineIdMatches = account.MachineId == null ? new List<string>() :
+                db.Account.Where(a => a.MachineId == account.MachineId).Select(a => a.AccountName).Distinct().Take(AltMatchLimit).ToList();
+            var ipMatches = account.LastSignInIp == null ? new List<string>() :
+                db.Account.Where(a => a.LastSignInIp == account.LastSignInIp).Select(a => a.AccountName).Distinct().Take(AltMatchLimit).ToList();
+
+            return (account, machineIdMatches, ipMatches);
+        }
+
+        [Authorize("moderator")]
+        [HttpGet, Route("getAlts")]
+        public async Task<dynamic> getAlts(string AccountName)
+        {
+            var (account, machineIdMatches, ipMatches) = queryAlts(AccountName);
+            if (account == null)
+                return NotFound();
+
+            return new
+            {
+                AccountName = account.AccountName,
+                EmuOrPs2 = AltChecker.EmuOrPs2(account.MachineId),
+                MachineIdMatches = machineIdMatches,
+                IpMatches = ipMatches
+            };
+        }
+
+        [Authorize("discord_bot")]
+        [HttpGet, Route("getAltsPublic")]
+        public async Task<dynamic> getAltsPublic(string AccountName)
+        {
+            var (account, machineIdMatches, ipMatches) = queryAlts(AccountName);
+            if (account == null)
+                return NotFound();
+
+            return new
+            {
+                AccountName = account.AccountName,
+                EmuOrPs2 = AltChecker.EmuOrPs2(account.MachineId),
+                IpMatches = ipMatches
+            };
+        }
+
         [Authorize("database")]
         [HttpPost, Route("postMachineId")]
         public async Task<dynamic> postMachineId([FromBody] string MachineId, int AccountId)
